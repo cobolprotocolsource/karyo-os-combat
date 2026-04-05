@@ -1,0 +1,399 @@
+```react
+import React, { useState, useEffect } from 'react';
+import { 
+  Shield, 
+  Camera, 
+  MapPin, 
+  CheckCircle2, 
+  Scan, 
+  ArrowRight, 
+  LogOut, 
+  Clock,
+  User,
+  ChevronLeft,
+  RefreshCcw,
+  Lock,
+  Eye,
+  EyeOff,
+  Navigation,
+  Database
+} from 'lucide-react';
+
+/**
+ * OS COMBAT - Sistem Logistik & Administrasi Keluar Prajurit
+ * Alur Kerja: Login -> Aksi Tunggal (Scan) -> Auto Pos & GPS -> Form & Foto -> Submit -> Ringkasan
+ */
+
+// --- REUSABLE COMPONENTS ---
+
+const Button = ({ children, onClick, variant = 'primary', className = '', disabled = false, icon: Icon, type = "button" }) => {
+  const variants = {
+    primary: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg active:scale-95 disabled:bg-slate-800 disabled:text-slate-500',
+    secondary: 'bg-slate-700 hover:bg-slate-600 text-slate-100',
+    outline: 'border-2 border-slate-700 text-slate-400 hover:bg-slate-800'
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl font-black uppercase tracking-widest transition-all ${variants[variant]} ${className}`}
+    >
+      {Icon && <Icon size={20} />}
+      {children}
+    </button>
+  );
+};
+
+const InputField = ({ label, type = 'text', placeholder, value, onChange, icon: Icon, error }) => {
+  const [showPass, setShowPass] = useState(false);
+  const isPassword = type === 'password';
+
+  return (
+    <div className="mb-4">
+      <label className="block text-slate-500 text-[10px] font-black mb-2 uppercase tracking-[0.2em]">{label}</label>
+      <div className="relative">
+        {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />}
+        <input
+          type={isPassword ? (showPass ? 'text' : 'password') : type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`w-full bg-slate-900 border-2 ${error ? 'border-red-500' : 'border-slate-800'} text-white rounded-xl py-4 ${Icon ? 'pl-12' : 'px-4'} focus:border-emerald-500 focus:outline-none transition-all placeholder:text-slate-700`}
+        />
+        {isPassword && (
+          <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600">
+            {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN APP LOGIC ---
+
+export default function App() {
+  const [screen, setScreen] = useState('LOGIN'); 
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  
+  // Login State
+  const [nrp, setNrp] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    posId: 'POS-01 ALPHA',
+    tujuan: '',
+    durasi: '2 Jam',
+    photo: null,
+    location: null,
+    timestamp: null
+  });
+
+  // Flow Handlers
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (nrp === '01' && password === '123') {
+      setLoading(true);
+      setTimeout(() => {
+        setUser({ name: 'PRATAMA WIDODO', nrp: '01', rank: 'SERTU' });
+        setScreen('HOME');
+        setLoading(false);
+      }, 1000);
+    } else {
+      setAuthError(true);
+      setTimeout(() => setAuthError(false), 2000);
+    }
+  };
+
+  const handleScanSuccess = () => {
+    setLoading(true);
+    // Simulasi pengenalan otomatis Pos & GPS saat scan berhasil
+    setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        timestamp: new Date().toLocaleTimeString('id-ID'),
+        location: '-6.2088, 106.8456' // Simulasi koordinat otomatis
+      }));
+      setScreen('FORM');
+      setLoading(false);
+    }, 1500);
+  };
+
+  const handleFinalSubmit = () => {
+    setLoading(true);
+    // Simulasi pengiriman data ke dashboard admin
+    setTimeout(() => {
+      setScreen('SUCCESS');
+      setLoading(false);
+    }, 2000);
+  };
+
+  // --- SCREENS ---
+
+  const Login = () => (
+    <div className="min-h-screen bg-slate-950 flex flex-col p-8 justify-center animate-in fade-in duration-500">
+      <div className="text-center mb-12">
+        <div className="inline-block p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] mb-6 shadow-2xl shadow-emerald-500/5">
+          <Shield size={60} className="text-emerald-500" />
+        </div>
+        <h1 className="text-4xl font-black text-white tracking-tighter">OS COMBAT</h1>
+        <p className="text-slate-500 text-[10px] font-black tracking-[0.4em] mt-2">SISTEM ADMINISTRASI KELUAR</p>
+      </div>
+
+      <form onSubmit={handleLogin} className="space-y-2">
+        <InputField label="NRP" placeholder="Masukkan NRP (01)" value={nrp} onChange={setNrp} icon={User} error={authError} />
+        <InputField label="Password" type="password" placeholder="Masukkan Password (123)" value={password} onChange={setPassword} icon={Lock} error={authError} />
+        {authError && <p className="text-red-500 text-[10px] font-black text-center mb-4">AUTENTIKASI GAGAL - PERIKSA KREDENSIAL</p>}
+        <Button type="submit" disabled={loading}>
+          {loading ? <RefreshCcw className="animate-spin" /> : 'MASUK'}
+        </Button>
+      </form>
+    </div>
+  );
+
+  const Home = () => (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col animate-in slide-in-from-bottom-6">
+      <header className="p-6 flex justify-between items-center border-b border-slate-900 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center">
+            <User className="text-emerald-500" size={24} />
+          </div>
+          <div>
+            <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase">{user?.rank} • {user?.nrp}</p>
+            <h2 className="text-lg font-black tracking-tight leading-none">{user?.name}</h2>
+          </div>
+        </div>
+        <button onClick={() => setScreen('LOGIN')} className="p-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20 active:scale-90 transition-all">
+          <LogOut size={20} />
+        </button>
+      </header>
+
+      <main className="flex-1 p-6 flex flex-col items-center justify-center text-center">
+        <div className="w-full max-w-xs space-y-12">
+          <div className="space-y-2">
+            <h3 className="text-2xl font-black tracking-tighter">SIAP BERTUGAS?</h3>
+            <p className="text-slate-500 text-sm font-medium">Lakukan scan QR di pos jaga terdekat untuk memulai izin keluar.</p>
+          </div>
+
+          <button 
+            onClick={() => setScreen('SCAN')}
+            className="group relative w-64 h-64 mx-auto bg-emerald-600 rounded-[3rem] shadow-[0_0_80px_-15px_rgba(16,185,129,0.5)] flex flex-col items-center justify-center gap-4 active:scale-95 transition-all"
+          >
+            <Scan size={80} className="text-white group-hover:scale-110 transition-transform" />
+            <span className="text-2xl font-black tracking-tighter">SCAN QR POS</span>
+            <div className="absolute inset-0 border-4 border-white/10 rounded-[3rem] animate-pulse" />
+          </button>
+
+          <div className="flex items-center justify-center gap-6 opacity-40">
+            <div className="flex flex-col items-center gap-1">
+              <Database size={16} />
+              <span className="text-[9px] font-black uppercase tracking-widest">Sistem Online</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Navigation size={16} />
+              <span className="text-[9px] font-black uppercase tracking-widest">GPS Aktif</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+
+  const ScanScreen = () => {
+    useEffect(() => {
+      const timer = setTimeout(handleScanSuccess, 2000);
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+        <div className="absolute inset-0 bg-slate-900/40" style={{backgroundImage: 'linear-gradient(rgba(16,185,129,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px'}} />
+        
+        <header className="relative z-10 p-6 flex items-center gap-4">
+          <button onClick={() => setScreen('HOME')} className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
+            <ChevronLeft className="text-white" />
+          </button>
+          <span className="text-white font-black uppercase tracking-[0.2em] text-xs">Mendeteksi QR Pos</span>
+        </header>
+
+        <div className="flex-1 flex flex-col items-center justify-center relative z-10">
+          <div className="relative w-72 h-72">
+            <div className="absolute -top-4 -left-4 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-2xl" />
+            <div className="absolute -top-4 -right-4 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-2xl" />
+            <div className="absolute -bottom-4 -left-4 w-12 h-12 border-b-4 border-l-4 border-emerald-500 rounded-bl-2xl" />
+            <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-4 border-r-4 border-emerald-500 rounded-br-2xl" />
+            
+            <div className="w-full h-full bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center">
+              <Scan size={100} className="text-emerald-500/20" />
+            </div>
+            
+            <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400 shadow-[0_0_30px_rgba(52,211,153,0.8)] animate-[scanning_2.5s_infinite]" />
+          </div>
+          
+          <div className="mt-12 text-center text-white px-8">
+            <p className="font-black text-sm uppercase tracking-widest mb-2">Pencarian Otomatis...</p>
+            <p className="text-slate-500 text-[10px] font-bold">POS AKAN DIKENALI SETELAH VALIDASI QR BERHASIL</p>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes scanning {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(288px); opacity: 0; }
+          }
+        `}</style>
+      </div>
+    );
+  };
+
+  const ExitForm = () => (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col animate-in slide-in-from-right-6 duration-500 pb-32">
+      <header className="p-6 border-b border-slate-900 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20">
+            <CheckCircle2 size={24} />
+          </div>
+          <div>
+            <h2 className="font-black text-xl leading-none uppercase tracking-tight">{formData.posId}</h2>
+            <p className="text-slate-500 text-[10px] font-black mt-1 uppercase tracking-widest">Identitas Pos Terverifikasi</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="p-6 space-y-8 overflow-y-auto">
+        {/* Info Otomatis */}
+        <section className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <MapPin className="text-emerald-500" size={24} />
+            <div>
+              <p className="text-white text-[11px] font-black uppercase tracking-wider">Koordinat GPS</p>
+              <p className="text-slate-500 text-[10px] font-mono mt-1">{formData.location || 'Mengambil data...'}</p>
+            </div>
+          </div>
+          <div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter">Valid</div>
+        </section>
+
+        {/* Input Manual */}
+        <section className="space-y-4">
+          <label className="block text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Tujuan / Alasan Keluar</label>
+          <textarea 
+            placeholder="Tuliskan tujuan (Contoh: Patroli Rutin Sektor B)"
+            className="w-full bg-slate-900 border-2 border-slate-800 text-white rounded-2xl py-4 px-4 h-32 focus:border-emerald-600 focus:outline-none placeholder:text-slate-700 text-sm font-bold"
+            value={formData.tujuan}
+            onChange={(e) => setFormData({...formData, tujuan: e.target.value})}
+          />
+          
+          <div className="grid grid-cols-2 gap-3">
+            {['2 Jam', '6 Jam', '12 Jam', 'Dinas Luar'].map((t) => (
+              <button
+                key={t}
+                onClick={() => setFormData({...formData, durasi: t})}
+                className={`py-3 rounded-xl text-xs font-black uppercase tracking-tighter border-2 transition-all ${formData.durasi === t ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg' : 'bg-slate-900 border-slate-800 text-slate-500'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Bukti Foto */}
+        <section className="space-y-4">
+          <label className="block text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Bukti Visual (Wajib)</label>
+          <div 
+            onClick={() => setFormData({...formData, photo: true})}
+            className={`w-full aspect-video rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer active:scale-95 transition-all ${formData.photo ? 'border-emerald-500 bg-emerald-500/5' : 'border-slate-800 bg-slate-900'}`}
+          >
+            {formData.photo ? (
+              <div className="text-center animate-in zoom-in-95">
+                <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl shadow-emerald-900/40">
+                  <Camera size={28} />
+                </div>
+                <span className="text-emerald-500 font-black uppercase tracking-widest text-xs">Foto Terambil</span>
+              </div>
+            ) : (
+              <div className="text-center opacity-40">
+                <Camera size={44} className="mx-auto mb-2" />
+                <span className="font-black uppercase tracking-widest text-[10px]">Ambil Foto Sekarang</span>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+
+      <footer className="fixed bottom-0 w-full p-6 bg-slate-950/90 backdrop-blur-2xl border-t border-slate-900 z-50">
+        <Button 
+          disabled={!formData.tujuan || !formData.photo || loading} 
+          onClick={handleFinalSubmit}
+          icon={ArrowRight}
+        >
+          {loading ? 'MEMPROSES DATA...' : 'KIRIM LAPORAN'}
+        </Button>
+      </footer>
+    </div>
+  );
+
+  const Success = () => (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-500">
+      <div className="relative mb-8">
+        <div className="w-32 h-32 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_60px_-5px_rgba(16,185,129,0.7)] relative z-10">
+          <CheckCircle2 size={64} className="text-white" />
+        </div>
+        <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping" />
+      </div>
+      
+      <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">BERHASIL TERKIRIM</h1>
+      <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mb-12">DATA TELAH TERSEDIA DI DASHBOARD ADMIN</p>
+      
+      <div className="w-full bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 text-left space-y-6 mb-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-5">
+          <Database size={100} />
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">Prajurit / NRP</p>
+          <p className="text-lg font-black text-white">{user?.name} / {user?.nrp}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">Pos Pengawas</p>
+            <p className="text-xs font-bold text-white uppercase">{formData.posId}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">Waktu Selesai</p>
+            <p className="text-xs font-bold text-white font-mono">{formData.timestamp}</p>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-slate-800 space-y-1">
+          <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">Tujuan Keluar</p>
+          <p className="text-xs font-bold text-slate-300 italic">"{formData.tujuan}"</p>
+        </div>
+      </div>
+
+      <Button onClick={() => {
+        setFormData({posId: 'POS-01 ALPHA', tujuan: '', durasi: '2 Jam', photo: null, location: null, timestamp: null});
+        setScreen('HOME');
+      }} variant="outline">KEMBALI KE BERANDA</Button>
+    </div>
+  );
+
+  // --- ROUTING ---
+  switch(screen) {
+    case 'LOGIN': return <Login />;
+    case 'HOME': return <Home />;
+    case 'SCAN': return <ScanScreen />;
+    case 'FORM': return <ExitForm />;
+    case 'SUCCESS': return <Success />;
+    default: return <Login />;
+  }
+}
+
+```
