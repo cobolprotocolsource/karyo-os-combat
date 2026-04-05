@@ -1,0 +1,284 @@
+🧑‍💼 FITUR LENGKAP DASHBOARD ADMIN – OS COMBAT
+
+
+---
+
+1. 📊 Dashboard Overview
+
+Ringkasan data:
+
+Total prajurit aktif
+
+Aktivitas hari ini
+
+Jumlah pos
+
+Aktivitas terbaru
+
+
+Quick stats (card UI)
+
+Recent activity (log terbaru)
+
+
+
+---
+
+2. 📋 Monitoring Logs Aktivitas
+
+Tabel aktivitas:
+
+Nama prajurit
+
+NRP
+
+Pos
+
+Waktu
+
+Alasan
+
+Durasi
+
+Status
+
+
+Fitur:
+
+Search
+
+Filter (tanggal, pos, prajurit)
+
+Pagination
+
+
+
+
+---
+
+3. 🔍 Detail Aktivitas
+
+Informasi lengkap:
+
+Data prajurit
+
+Data pos
+
+Timestamp
+
+Form keluar
+
+Durasi
+
+Foto bukti
+
+Koordinat GPS
+
+
+Opsional:
+
+Tampilan peta (map view)
+
+
+
+
+---
+
+4. ✅ Validasi & Approval
+
+Tandai aktivitas:
+
+Valid
+
+Perlu dicek
+
+Tidak valid
+
+
+Tambah catatan admin
+
+
+
+---
+
+5. 👥 Manajemen Personel
+
+Tambah prajurit
+
+Edit data:
+
+NRP
+
+Nama
+
+Pangkat
+
+
+Upload foto profil
+
+Hapus / nonaktifkan
+
+
+
+---
+
+6. 📍 Manajemen Pos
+
+Tambah pos
+
+Edit pos:
+
+Nama
+
+Lokasi
+
+
+Generate QR Code statis
+
+Download QR Code
+
+
+
+---
+
+7. 📸 Manajemen Bukti (Foto)
+
+Preview foto
+
+Zoom foto
+
+Download foto
+
+Tandai foto tidak valid
+
+
+
+---
+
+8. 📊 Statistik & Analitik
+
+Aktivitas per hari/minggu/bulan
+
+Prajurit paling aktif
+
+Pos paling sering digunakan
+
+Grafik sederhana
+
+
+
+---
+
+9. 📁 Export Data
+
+Export logs ke:
+
+CSV
+
+Excel
+
+
+Filter sebelum export
+
+
+
+---
+
+10. 📜 Riwayat Aktivitas Prajurit
+
+Histori per prajurit:
+
+Total aktivitas
+
+Timeline aktivitas
+
+
+Filter per individu
+
+
+
+---
+
+11. 🚨 Alert & Notifikasi
+
+GPS tidak sesuai
+
+Aktivitas mencurigakan
+
+Tidak ada foto
+
+Aktivitas di luar jam
+
+
+
+---
+
+12. 📍 Monitoring Lokasi (Map View)
+
+Peta semua aktivitas
+
+Titik lokasi GPS
+
+Visualisasi per pos
+
+
+
+---
+
+13. 🔐 Role & Hak Akses (RBAC)
+
+Role:
+
+Admin
+
+Operator
+
+
+Pengaturan akses per fitur
+
+
+
+---
+
+14. ⚙️ Pengaturan Sistem
+
+Radius validasi GPS
+
+Batas durasi keluar
+
+Wajib foto atau tidak
+
+Konfigurasi sistem lain
+
+
+
+---
+
+15. 📴 Mode Offline (Advanced)
+
+Sinkronisasi data tertunda
+
+Status data (pending / synced)
+
+
+
+---
+
+16. 🧾 Audit Log (Advanced)
+
+Riwayat perubahan data:
+
+Siapa edit apa
+
+Kapan perubahan dilakukan
+
+
+
+
+---
+
+17. 🔄 Refresh & Real-time Update
+
+Auto refresh dashboard
+
+Near real-time data monitoring
