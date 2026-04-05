@@ -1,0 +1,338 @@
+🪖 FITUR LENGKAP PENGGUNA (PRAJURIT) – OS COMBAT
+
+
+---
+
+1. 🔐 Autentikasi (Login)
+
+Login menggunakan:
+
+NRP
+
+Password
+
+
+Sistem:
+
+Validasi kredensial
+
+Generate JWT token
+
+
+Session aman (auto logout jika expired)
+
+
+
+---
+
+2. 🏠 Halaman Utama (Home)
+
+Menampilkan:
+
+Nama prajurit
+
+Status saat ini:
+
+🟢 Di dalam
+
+🔴 Di luar
+
+
+
+Tombol utama:
+
+SCAN QR POS
+
+
+Info tambahan:
+
+Aktivitas terakhir
+
+
+
+
+---
+
+3. 📷 Scan QR Pos (2 QR System)
+
+Setiap pos memiliki:
+
+🔴 QR KELUAR (EXIT)
+
+🟢 QR MASUK (ENTRY)
+
+
+Sistem:
+
+Membaca:
+
+pos_id
+
+type (exit / entry)
+
+
+
+Feedback:
+
+QR valid / tidak valid
+
+
+
+---
+
+4. 🔴 Fitur KELUAR (SCAN QR EXIT)
+
+Form Keluar:
+
+Tujuan / alasan keluar
+
+Durasi keluar
+
+
+Data otomatis:
+
+📍 GPS (wajib)
+
+📸 Foto (wajib)
+
+
+Validasi:
+
+Tidak bisa keluar jika sudah status keluar
+
+
+Submit:
+
+Kirim:
+
+JWT
+
+pos_id
+
+type: exit
+
+GPS
+
+form
+
+foto
+
+
+
+👉 Status berubah: Di dalam → Di luar
+
+
+---
+
+5. 🟢 Fitur MASUK (SCAN QR ENTRY)
+
+Tampilan:
+
+Info:
+
+Nama pos
+
+Waktu scan
+
+
+
+Aksi:
+
+Tombol:
+
+Konfirmasi Masuk
+
+
+
+Data:
+
+📍 GPS (wajib)
+
+📸 Foto (opsional / sesuai aturan)
+
+
+Validasi:
+
+Tidak bisa masuk jika belum keluar
+
+
+Submit:
+
+Kirim:
+
+JWT
+
+pos_id
+
+type: entry
+
+GPS
+
+foto (opsional)
+
+
+
+👉 Status berubah: Di luar → Di dalam
+
+
+---
+
+6. 📍 Deteksi Lokasi (GPS)
+
+Ambil otomatis:
+
+Latitude
+
+Longitude
+
+
+Validasi (opsional):
+
+Radius dari pos
+
+
+Status:
+
+Valid / tidak valid
+
+
+
+
+---
+
+7. 📸 Manajemen Foto
+
+Capture langsung dari device
+
+Preview sebelum submit
+
+Validasi:
+
+Wajib saat keluar
+
+Opsional saat masuk
+
+
+
+
+---
+
+8. 📤 Submit & Feedback
+
+Status:
+
+Loading
+
+Berhasil
+
+Gagal
+
+
+Notifikasi:
+
+“Berhasil keluar”
+
+“Berhasil masuk”
+
+
+
+
+---
+
+9. 📜 Riwayat Aktivitas
+
+Lihat histori pribadi:
+
+Keluar & masuk
+
+Waktu
+
+Pos
+
+Status
+
+
+Filter sederhana
+
+
+
+---
+
+10. ⚠️ Validasi & Error Handling
+
+QR tidak valid
+
+Salah scan:
+
+Scan EXIT saat sudah keluar
+
+Scan ENTRY saat belum keluar
+
+
+GPS tidak aktif
+
+Upload gagal
+
+Token expired
+
+
+
+---
+
+11. 🔄 Retry & Recovery
+
+Kirim ulang jika gagal
+
+Simpan sementara (opsional)
+
+
+
+---
+
+12. 📴 Mode Offline (Advanced)
+
+Data disimpan saat offline
+
+Auto sync saat online
+
+
+
+---
+
+13. 🔐 Keamanan
+
+Semua request menggunakan JWT
+
+Tidak bisa akses tanpa login
+
+Komunikasi via HTTPS
+
+
+
+---
+
+14. 🎯 UX Optimization
+
+1 aksi utama: scan
+
+Tidak perlu pilih manual (exit/entry dari QR)
+
+Minim input
+
+Proses cepat (< 1 menit)
+
+
+
+---
+
+🔄 FLOW FINAL PENGGUNA (2 QR SYSTEM)
+
+Login
+→ Scan QR
+
+IF QR = EXIT:
+  → Form Keluar → Foto → Submit → Status: Di luar
+
+IF QR = ENTRY:
+  → Konfirmasi Masuk → (Foto opsional) → Submit → Status: Di dalam
+
