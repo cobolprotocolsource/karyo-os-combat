@@ -1,0 +1,635 @@
+```react
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  LayoutDashboard, 
+  ClipboardList, 
+  Users, 
+  MapPin, 
+  LogOut, 
+  Search, 
+  Filter, 
+  Plus, 
+  MoreVertical, 
+  Bell, 
+  User, 
+  Clock, 
+  Shield, 
+  CheckCircle, 
+  AlertTriangle, 
+  X, 
+  Download, 
+  QrCode, 
+  Calendar, 
+  Maximize2, 
+  Camera,
+  Navigation,
+  FileText,
+  BarChart3,
+  Settings,
+  Lock,
+  ArrowUpRight,
+  History,
+  Save,
+  ChevronRight,
+  TrendingUp,
+  FileSpreadsheet
+} from 'lucide-react';
+
+// --- DATA SIMULASI ---
+const DATA_LOGS = [
+  { id: 101, nama: 'Budi Santoso', nrp: '3112045566', pos: 'Pos Alpha', waktu: '2023-10-27 08:30', alasan: 'Patroli Sektor 1', durasi: '02:15:00', status: 'Selesai', coord: '-6.2088, 106.8456', foto: 'https://images.unsplash.com/photo-1590133323030-9494372a1061?w=400' },
+  { id: 102, nama: 'Andi Wijaya', nrp: '3112045567', pos: 'Pos Bravo', waktu: '2023-10-27 09:15', alasan: 'Pengecekan Perimeter', durasi: '01:00:00', status: 'Aktif', coord: '-6.2100, 106.8500', foto: null },
+  { id: 103, nama: 'Slamet Riyadi', nrp: '3112045568', pos: 'Pos Alpha', waktu: '2023-10-27 10:00', alasan: 'Pengambilan Logistik', durasi: '00:45:00', status: 'Peringatan', coord: '-6.2050, 106.8400', foto: 'https://images.unsplash.com/photo-1579935110464-fcd041be62d0?w=400' },
+];
+
+const ANALYTICS_DATA = {
+  trenHarian: [12, 18, 15, 25, 32, 28, 20],
+  topPos: [
+    { nama: 'Pos Alpha', count: 142, trend: '+12%' },
+    { nama: 'Pos Bravo', count: 98, trend: '+5%' },
+    { nama: 'Pos Charlie', count: 45, trend: '-2%' },
+  ],
+  topPersonel: [
+    { nama: 'Sertu Budi Santoso', count: 24 },
+    { nama: 'Praka Andi Wijaya', count: 19 },
+    { nama: 'Kopda Slamet', count: 15 },
+  ]
+};
+
+// --- KOMPONEN MODAL ---
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+      <div className="bg-slate-900 border border-slate-700 rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-800/50">
+          <h2 className="text-xl font-black text-white uppercase tracking-tight">{title}</h2>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-all">
+            <X size={24} />
+          </button>
+        </div>
+        <div className="p-8 overflow-y-auto custom-scrollbar bg-slate-900">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- APLIKASI UTAMA ---
+export default function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [time, setTime] = useState(new Date());
+
+  // State Pengaturan Sistem
+  const [settings, setSettings] = useState({
+    gpsRadius: 50,
+    maxDuration: 120,
+    requirePhoto: true,
+    autoAlert: true
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleExport = () => {
+    setIsExporting(true);
+    setTimeout(() => {
+      setIsExporting(false);
+      // Simulasi download
+    }, 1500);
+  };
+
+  const SidebarItem = ({ id, icon: Icon, label, danger }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 font-bold text-sm group ${
+        activeTab === id 
+        ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-900/40' 
+        : danger ? 'text-rose-500 hover:bg-rose-500/10' : 'text-slate-500 hover:bg-slate-800 hover:text-slate-200'
+      }`}
+    >
+      <Icon size={20} className={`${activeTab === id ? 'scale-110' : 'group-hover:scale-110'} transition-transform`} />
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
+      
+      {/* SIDEBAR */}
+      <aside className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col p-6 hidden lg:flex shrink-0">
+        <div className="flex items-center gap-3 px-2 py-8 mb-4">
+          <div className="bg-emerald-600 p-2.5 rounded-xl shadow-lg shadow-emerald-600/30">
+            <Shield className="text-white" size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black tracking-tighter text-white">OS COMBAT</h1>
+            <p className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.2em] leading-none">Command Center</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-5 mb-2 mt-4">Utama</p>
+          <SidebarItem id="dashboard" icon={LayoutDashboard} label="Dashboard" />
+          <SidebarItem id="analytics" icon={BarChart3} label="Statistik & Tren" />
+          <SidebarItem id="logs" icon={ClipboardList} label="Monitoring Logs" />
+          
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-5 mb-2 mt-6">Database</p>
+          <SidebarItem id="personel" icon={Users} label="Data Personel" />
+          <SidebarItem id="pos" icon={MapPin} label="Manajemen Pos" />
+          
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-5 mb-2 mt-6">Sistem</p>
+          <SidebarItem id="roles" icon={Lock} label="Hak Akses (RBAC)" />
+          <SidebarItem id="settings" icon={Settings} label="Pengaturan" />
+        </nav>
+
+        <div className="pt-6 border-t border-slate-800">
+          <SidebarItem id="logout" icon={LogOut} label="Keluar Sistem" danger />
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        
+        {/* TOPBAR */}
+        <header className="h-24 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-12 shrink-0 z-10">
+          <div className="flex flex-col">
+            <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+               {activeTab === 'dashboard' && <><LayoutDashboard className="text-emerald-500" /> Ringkasan Operasional</>}
+               {activeTab === 'analytics' && <><BarChart3 className="text-emerald-500" /> Analitik & Tren Data</>}
+               {activeTab === 'logs' && <><ClipboardList className="text-emerald-500" /> Monitoring Aktivitas</>}
+               {activeTab === 'settings' && <><Settings className="text-emerald-500" /> Konfigurasi Sistem</>}
+               {activeTab === 'roles' && <><Lock className="text-emerald-500" /> Keamanan & Akses</>}
+            </h2>
+            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+              <span className="flex items-center gap-1.5"><Clock size={12} className="text-emerald-500" /> {time.toLocaleTimeString()}</span>
+              <span className="text-slate-700">|</span>
+              <span className="text-slate-400">{time.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={handleExport}
+              disabled={isExporting}
+              className="hidden sm:flex items-center gap-3 px-6 py-3 bg-slate-800 border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-all disabled:opacity-50"
+            >
+              {isExporting ? <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /> : <FileSpreadsheet size={16} className="text-emerald-500" />}
+              {isExporting ? 'Mengekspor...' : 'Export Laporan'}
+            </button>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-900/30">
+               <User size={24} className="text-white" />
+            </div>
+          </div>
+        </header>
+
+        {/* VIEWPORT AREA */}
+        <div className="flex-1 overflow-y-auto p-12 custom-scrollbar space-y-12">
+          
+          {/* TAB: DASHBOARD (RINGKASAN) */}
+          {activeTab === 'dashboard' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                 {[
+                   { label: 'Total Keluar', val: '1.248', icon: LogOut, color: 'text-emerald-500', trend: '+12%' },
+                   { label: 'Selesai Tepat Waktu', val: '98%', icon: CheckCircle, color: 'text-blue-500', trend: 'Stabil' },
+                   { label: 'Peringatan Radius', val: '14', icon: AlertTriangle, color: 'text-rose-500', trend: '-5%' },
+                   { label: 'Aktivitas Hari Ini', val: '84', icon: TrendingUp, color: 'text-amber-500', trend: '+20%' },
+                 ].map((s, i) => (
+                    <div key={i} className="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] shadow-xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><s.icon size={80} /></div>
+                      <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">{s.label}</p>
+                      <h3 className="text-4xl font-black text-white tracking-tighter mb-4">{s.val}</h3>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-black px-2 py-1 rounded-md bg-slate-800 ${s.trend.startsWith('+') ? 'text-emerald-500' : 'text-slate-400'}`}>{s.trend}</span>
+                        <span className="text-[10px] text-slate-600 font-bold uppercase">vs Bulan Lalu</span>
+                      </div>
+                    </div>
+                 ))}
+              </div>
+
+              {/* Tabel Ringkas Aktivitas */}
+              <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <div className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-800/30">
+                   <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
+                     <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                     Live Activity Feed
+                   </h3>
+                </div>
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
+                     <thead className="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b border-slate-800">
+                       <tr>
+                         <th className="px-10 py-6">Prajurit</th>
+                         <th className="px-10 py-6">Lokasi Pos</th>
+                         <th className="px-10 py-6">Status</th>
+                         <th className="px-10 py-6 text-right">Aksi</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-slate-800/50">
+                       {DATA_LOGS.map(log => (
+                         <tr key={log.id} className="hover:bg-slate-800/30 transition-all cursor-pointer group">
+                           <td className="px-10 py-6">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-500 font-black text-xs">{log.nama.charAt(0)}</div>
+                                <div>
+                                  <p className="text-white font-bold text-sm">{log.nama}</p>
+                                  <p className="text-[10px] text-slate-500 font-mono">{log.nrp}</p>
+                                </div>
+                              </div>
+                           </td>
+                           <td className="px-10 py-6">
+                              <p className="text-sm font-semibold text-slate-300">{log.pos}</p>
+                              <p className="text-[10px] text-slate-600 font-mono">{log.waktu}</p>
+                           </td>
+                           <td className="px-10 py-6">
+                              <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border ${log.status === 'Aktif' ? 'border-blue-500/20 text-blue-400 bg-blue-500/5' : 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5'}`}>
+                                {log.status}
+                              </span>
+                           </td>
+                           <td className="px-10 py-6 text-right">
+                              <button onClick={() => setSelectedLog(log)} className="p-3 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition-all">
+                                 <Maximize2 size={18} />
+                              </button>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: STATISTIK & ANALITIK */}
+          {activeTab === 'analytics' && (
+            <div className="animate-in fade-in duration-500 space-y-10">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                 {/* Grafik Tren (Simulasi Visual) */}
+                 <div className="bg-slate-900 border border-slate-800 p-10 rounded-[2.5rem] shadow-xl">
+                    <h4 className="text-lg font-black text-white uppercase tracking-tight mb-8">Tren Aktivitas Mingguan</h4>
+                    <div className="h-64 flex items-end justify-between gap-4 px-4 border-b border-slate-800 pb-2">
+                       {ANALYTICS_DATA.trenHarian.map((val, i) => (
+                         <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
+                            <div className="w-full bg-emerald-600/20 rounded-t-xl relative group-hover:bg-emerald-500/40 transition-all cursor-pointer" style={{ height: `${val * 3}px` }}>
+                               <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-950 text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                 {val}
+                               </div>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-tighter">Day {i+1}</span>
+                         </div>
+                       ))}
+                    </div>
+                    <p className="mt-8 text-xs text-slate-500 italic leading-relaxed">Analisis: Terjadi lonjakan aktivitas sebesar 15% pada hari ke-5 akibat rotasi rutin sektor utara.</p>
+                 </div>
+
+                 {/* Top Pos & Personel */}
+                 <div className="space-y-10">
+                    <div className="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] shadow-xl">
+                       <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Pemanfaatan Pos Tertinggi</h4>
+                       <div className="space-y-4">
+                          {ANALYTICS_DATA.topPos.map((pos, i) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-slate-950/50 rounded-2xl border border-slate-800/50">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white font-black text-xs">{i+1}</div>
+                                  <span className="text-sm font-bold">{pos.nama}</span>
+                               </div>
+                               <div className="text-right">
+                                  <p className="text-sm font-black text-emerald-400">{pos.count} Kali</p>
+                                  <p className="text-[10px] text-slate-600 font-bold">{pos.trend} dari bulan lalu</p>
+                               </div>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: LOGS AKTIVITAS (MONITORING DETAIL) */}
+          {activeTab === 'logs' && (
+            <div className="animate-in fade-in duration-500 space-y-8">
+               <div className="flex flex-col lg:flex-row gap-4 justify-between items-center bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800">
+                  <div className="relative w-full max-w-xl">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                    <input 
+                      type="text" 
+                      placeholder="Filter Nama, NRP, atau Lokasi Pos..." 
+                      className="w-full bg-slate-800 border border-slate-700 rounded-2xl py-4 pl-16 pr-6 text-sm focus:ring-2 ring-emerald-500/50 outline-none transition-all font-medium"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-3 w-full lg:w-auto">
+                    <button className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all">
+                      <Filter size={18} className="text-emerald-500" /> Semua Sektor
+                    </button>
+                  </div>
+               </div>
+
+               <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-800/30 text-slate-500 text-[10px] uppercase font-black border-b border-slate-800">
+                      <tr>
+                        <th className="px-10 py-6">Prajurit / NRP</th>
+                        <th className="px-10 py-6">Waktu & Durasi</th>
+                        <th className="px-10 py-6">Alasan Keluar</th>
+                        <th className="px-10 py-6">Bukti Foto</th>
+                        <th className="px-10 py-6 text-right">Validasi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {DATA_LOGS.map(log => (
+                        <tr key={log.id} className="hover:bg-slate-800/40 transition-colors group">
+                           <td className="px-10 py-6">
+                              <p className="text-white font-bold text-sm group-hover:text-emerald-400 transition-colors">{log.nama}</p>
+                              <p className="text-xs text-slate-600 font-mono font-bold mt-1">{log.nrp}</p>
+                           </td>
+                           <td className="px-10 py-6">
+                              <div className="flex flex-col gap-1">
+                                 <span className="text-xs text-slate-300 flex items-center gap-2"><Clock size={12} className="text-emerald-500" /> {log.waktu}</span>
+                                 <span className="text-[10px] text-slate-500 font-mono font-black">{log.durasi}</span>
+                              </div>
+                           </td>
+                           <td className="px-10 py-6 text-xs italic text-slate-400 max-w-[200px] truncate">"{log.alasan}"</td>
+                           <td className="px-10 py-6">
+                              {log.foto ? (
+                                <div className="w-10 h-10 rounded-lg overflow-hidden border border-slate-700">
+                                   <img src={log.foto} className="w-full h-full object-cover" />
+                                </div>
+                              ) : <Camera size={20} className="text-slate-800" />}
+                           </td>
+                           <td className="px-10 py-6 text-right">
+                              <button onClick={() => setSelectedLog(log)} className="px-5 py-2.5 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                                 Lihat Bukti
+                              </button>
+                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+               </div>
+            </div>
+          )}
+
+          {/* TAB: PENGATURAN SISTEM (RADIUS GPS, DLL) */}
+          {activeTab === 'settings' && (
+            <div className="animate-in fade-in duration-500 max-w-4xl mx-auto space-y-10">
+               <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-xl">
+                  <div className="flex items-center gap-4 mb-10 border-b border-slate-800 pb-8">
+                     <div className="bg-emerald-500/10 p-4 rounded-2xl text-emerald-500 border border-emerald-500/20">
+                        <Settings size={28} />
+                     </div>
+                     <div>
+                        <h3 className="text-xl font-black text-white tracking-tight uppercase">Parameter Operasional</h3>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Atur batasan sistem sesuai kebijakan lapangan</p>
+                     </div>
+                  </div>
+
+                  <div className="space-y-10">
+                     <div className="flex flex-col md:flex-row gap-8 justify-between items-start md:items-center p-8 bg-slate-950/50 rounded-3xl border border-slate-800/50">
+                        <div className="flex-1">
+                           <h4 className="text-sm font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                             <Navigation size={16} className="text-emerald-500" /> Radius Geofence (Meter)
+                           </h4>
+                           <p className="text-xs text-slate-500 leading-relaxed">Batas toleransi jarak prajurit dari titik koordinat pos saat pemindaian.</p>
+                        </div>
+                        <div className="flex items-center gap-6 w-full md:w-auto">
+                           <input 
+                              type="range" min="10" max="200" step="10"
+                              value={settings.gpsRadius}
+                              onChange={(e) => setSettings({...settings, gpsRadius: e.target.value})}
+                              className="w-48 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                           />
+                           <span className="w-16 text-right font-mono font-black text-emerald-400">{settings.gpsRadius}m</span>
+                        </div>
+                     </div>
+
+                     <div className="flex flex-col md:flex-row gap-8 justify-between items-start md:items-center p-8 bg-slate-950/50 rounded-3xl border border-slate-800/50">
+                        <div className="flex-1">
+                           <h4 className="text-sm font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                             <Clock size={16} className="text-emerald-500" /> Durasi Keluar Maksimal (Menit)
+                           </h4>
+                           <p className="text-xs text-slate-500 leading-relaxed">Sistem akan memberi peringatan jika durasi melebihi batas ini.</p>
+                        </div>
+                        <input 
+                          type="number" 
+                          value={settings.maxDuration}
+                          onChange={(e) => setSettings({...settings, maxDuration: e.target.value})}
+                          className="w-24 bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-sm font-black text-emerald-400 outline-none focus:ring-2 ring-emerald-500/50"
+                        />
+                     </div>
+
+                     <div className="flex items-center justify-between p-8 bg-slate-950/50 rounded-3xl border border-slate-800/50">
+                        <div className="flex-1">
+                           <h4 className="text-sm font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                             <Camera size={16} className="text-emerald-500" /> Wajib Ambil Bukti Foto
+                           </h4>
+                           <p className="text-xs text-slate-500 leading-relaxed">Mewajibkan personel mengambil selfie sebagai validasi visual.</p>
+                        </div>
+                        <button 
+                          onClick={() => setSettings({...settings, requirePhoto: !settings.requirePhoto})}
+                          className={`w-14 h-8 rounded-full transition-all relative ${settings.requirePhoto ? 'bg-emerald-600' : 'bg-slate-700'}`}
+                        >
+                           <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${settings.requirePhoto ? 'left-7' : 'left-1'}`} />
+                        </button>
+                     </div>
+                  </div>
+
+                  <div className="mt-12 pt-8 border-t border-slate-800 flex justify-end">
+                     <button className="flex items-center gap-3 px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/40 active:scale-95">
+                        <Save size={18} /> Simpan Konfigurasi
+                     </button>
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {/* TAB: ROLE & HAK AKSES (RBAC) */}
+          {activeTab === 'roles' && (
+            <div className="animate-in fade-in duration-500 space-y-10">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="bg-slate-900 border border-slate-800 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                     <div className="absolute -top-10 -right-10 opacity-5 rotate-12 group-hover:rotate-0 transition-transform"><Shield size={180} /></div>
+                     <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-emerald-500/20 text-emerald-500 rounded-2xl flex items-center justify-center">
+                           <Lock size={24} />
+                        </div>
+                        <h4 className="text-xl font-black text-white tracking-tight uppercase">Admin Utama</h4>
+                     </div>
+                     <p className="text-xs text-slate-500 leading-relaxed mb-8">Memiliki kendali penuh atas sistem, termasuk manajemen data personel, konfigurasi parameter GPS, dan pengaturan hak akses pengguna lain.</p>
+                     <div className="space-y-3">
+                        {['Kontrol Parameter GPS', 'Manajemen Personel', 'Audit Logs Lengkap', 'Pengaturan Sistem'].map((p, i) => (
+                           <div key={i} className="flex items-center gap-3 text-[10px] font-black uppercase text-emerald-400">
+                              <CheckCircle size={14} /> {p}
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                     <div className="absolute -top-10 -right-10 opacity-5 rotate-12 group-hover:rotate-0 transition-transform"><User size={180} /></div>
+                     <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-blue-500/20 text-blue-500 rounded-2xl flex items-center justify-center">
+                           <Users size={24} />
+                        </div>
+                        <h4 className="text-xl font-black text-white tracking-tight uppercase">Operator</h4>
+                     </div>
+                     <p className="text-xs text-slate-500 leading-relaxed mb-8">Hanya dapat melakukan monitoring real-time dan melihat laporan aktivitas. Tidak diizinkan mengubah konfigurasi inti atau menghapus data.</p>
+                     <div className="space-y-3">
+                        {['Monitoring Real-time', 'Melihat Histori', 'Cetak Laporan'].map((p, i) => (
+                           <div key={i} className="flex items-center gap-3 text-[10px] font-black uppercase text-blue-400">
+                              <CheckCircle size={14} /> {p}
+                           </div>
+                        ))}
+                        <div className="flex items-center gap-3 text-[10px] font-black uppercase text-slate-600 line-through">
+                           <X size={14} /> Edit Pengaturan
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      {/* --- MODAL DETAIL (VALIDASI & RIWAYAT) --- */}
+      <Modal isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} title="Manajemen Bukti & Validasi">
+        {selectedLog && (
+          <div className="space-y-10">
+            {/* Header Informasi */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-950/50 p-8 rounded-[2rem] border border-slate-800">
+               <div className="space-y-6">
+                  <div>
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 mb-2 block">Identitas Prajurit</label>
+                    <div className="flex items-center gap-4">
+                       <div className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-emerald-500 font-black">
+                          <User size={28} />
+                       </div>
+                       <div>
+                          <p className="text-xl font-black text-white tracking-tight">{selectedLog.nama}</p>
+                          <p className="text-xs text-emerald-500 font-mono font-bold">{selectedLog.nrp}</p>
+                       </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 mb-2 block">Keperluan / Alasan</label>
+                    <p className="text-sm italic text-slate-300 bg-slate-900 p-4 rounded-xl border border-slate-800 leading-relaxed">"{selectedLog.alasan}"</p>
+                  </div>
+               </div>
+               <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                     <div>
+                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 mb-1 block">Waktu Lapor</label>
+                        <p className="text-sm font-mono font-black text-white">{selectedLog.waktu}</p>
+                     </div>
+                     <div>
+                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 mb-1 block">Status</label>
+                        <span className="text-[9px] px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded font-black uppercase">Terverifikasi</span>
+                     </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-600 mb-2 block">Koordinat Terdeteksi (GPS)</label>
+                    <div className="flex items-center gap-3 text-blue-400 font-mono text-xs bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                      <Navigation size={16} />
+                      {selectedLog.coord}
+                    </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Bukti Visual & Histori */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+               <div>
+                  <h4 className="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                     <Camera size={16} className="text-emerald-500" /> Verifikasi Foto Bukti
+                  </h4>
+                  <div className="aspect-[4/3] bg-slate-950 rounded-[2.5rem] border-2 border-slate-800 overflow-hidden relative group shadow-2xl">
+                     {selectedLog.foto ? (
+                       <img src={selectedLog.foto} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                     ) : (
+                       <div className="h-full flex flex-col items-center justify-center opacity-20">
+                          <Camera size={64} className="mb-4" />
+                          <p className="text-[10px] font-black uppercase">Foto Tidak Terlampir</p>
+                       </div>
+                     )}
+                     <div className="absolute inset-0 bg-emerald-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                        <button className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/20 shadow-2xl text-white">
+                           <Maximize2 size={24} />
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex flex-col">
+                  <h4 className="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                     <History size={16} className="text-amber-500" /> Riwayat 3 Aktivitas Terakhir
+                  </h4>
+                  <div className="flex-1 bg-slate-950 rounded-[2.5rem] border-2 border-slate-800 p-8 space-y-6 overflow-y-auto">
+                     {[
+                       { date: '26 Okt 2023', pos: 'Pos Alpha', type: 'Patroli' },
+                       { date: '25 Okt 2023', pos: 'Pos Bravo', type: 'Giat Rutin' },
+                       { date: '24 Okt 2023', pos: 'Pos Alpha', type: 'Logistik' }
+                     ].map((h, i) => (
+                       <div key={i} className="flex items-center gap-4 border-l-2 border-emerald-500/20 pl-4 py-1">
+                          <div className="flex-1">
+                             <p className="text-xs font-black text-white uppercase">{h.type}</p>
+                             <p className="text-[10px] text-slate-500 font-bold">{h.date} • {h.pos}</p>
+                          </div>
+                          <ChevronRight size={14} className="text-slate-700" />
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+
+            <div className="flex justify-end gap-4 pt-8 border-t border-slate-800">
+               <button onClick={() => setSelectedLog(null)} className="px-8 py-4 bg-slate-800 text-slate-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Tutup Jendela</button>
+               <button className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 shadow-xl shadow-emerald-900/40 flex items-center gap-3 active:scale-95">
+                  <CheckCircle size={18} /> Konfirmasi Validasi
+               </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* --- CSS CUSTOM --- */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #475569;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          background: #10b981;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 3px solid #0f172a;
+          box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+      `}} />
+    </div>
+  );
+}
+
+```
